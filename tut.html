@@ -31,7 +31,7 @@
     varying vec2 vUV;
 
     void main(void) {
-        vec4 position= uMVMatrix * vec4(vaVertexPosition.xyz*uScr.y,1.0);
+        vec4 position= uMVMatrix * vec4(vaVertexPosition.xyz,1.0);
         position = uPMatrix * position;
         position.x = position.x+vaUV.x;
         position.y = position.y+vaUV.y*uScr.x;
@@ -178,6 +178,34 @@
         shaderProgram.uScr = gl.getUniformLocation(shaderProgram, "uScr");
     }
 
+    function BSpline(f, p) {
+        var N = p.length;
+        f *= N;
+        if (f < 0)
+            f = 0;
+        if (f > N)
+            f = N - 0.00001;
+        var o = Math.floor(f); //offset
+        var u = f - o; //interp
+
+        var point = Array(4);
+        for (var i = 0; i < 4; i++) {
+            if (i + o - 1 < 0)
+                point[i] = p[0];
+            else if (i + o - 1 > N - 1)
+                point[i] = p[N - 1];
+            else
+                point[i] = p[i + o - 1];
+        }
+        var key = [
+              (point[0] + 4 * point[1] + point[2]) / 6,
+              (point[2] - point[0]) / 2,
+              (point[0] - 2 * point[1] + point[2]) / 2,
+              (3 * (point[1] - point[2]) + point[3] - point[0]) / 6
+        ];
+        return (key[0] + u * (key[1] + u * (key[2] + key[3] * u)));
+    }
+
     var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
 
@@ -187,7 +215,7 @@
         squareVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
         var vertices = [];
-        var sq = 1000;
+        var sq = 100;
         for (var i = 0; i < sq; i++) {
             var v = [
                 [0.0, 0.0, 0.0],
@@ -201,7 +229,8 @@
                 [1, -1],
                 [-1, -1]
             ];
-            var center = [Math.random() * 20, Math.random() * 20, Math.random() * 20];
+            var r = BSpline(i / 100, [0, 0, 10, 20, 0, 5, 10, 5, 0]);
+            var center = [i, r, 0];
             for (var j = 0; j < 4; j++) {
                 v[j][0] += center[0];
                 v[j][1] += center[1];
@@ -251,8 +280,8 @@
             mat4.identity(mvMatrix);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
-            mat4.translate(mvMatrix, [-10, -10.0, -50]);
-            mat4.rotate(mvMatrix, count / 60 , [0.5, 1.0, 0.2]);
+            mat4.translate(mvMatrix, [0, -10.0, -50]);
+            mat4.rotate(mvMatrix, count / 60 , [0, 1.0, 0]);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
