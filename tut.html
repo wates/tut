@@ -25,12 +25,18 @@
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
+    uniform vec4 uScr;
 
     varying vec4 vColor;
     varying vec2 vUV;
 
     void main(void) {
-        gl_Position = uPMatrix*uMVMatrix*vec4(vaVertexPosition, 1.0);
+        vec4 position= uMVMatrix * vec4(vaVertexPosition.xyz,1.0);
+        position = uPMatrix * position;
+        position.x = position.x+vaUV.x*uScr.x;
+        position.y = position.y+vaUV.y;
+
+        gl_Position = position;
         vColor = vaVertexColor;
         vUV = vaUV;
     }
@@ -169,6 +175,7 @@
 
         shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+        shaderProgram.uScr = gl.getUniformLocation(shaderProgram, "uScr");
     }
 
     var mvMatrix = mat4.create();
@@ -183,10 +190,10 @@
         var sq = 400;
         for (var i = 0; i < sq; i++) {
             var v = [
-                 [1, 1 , 0.0],
-                [-1, 1 , 0.0],
-                [1, -1 , 0.0],
-                [-1, -1 , 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
             ];
             var uv = [
                 [1, 1],
@@ -255,6 +262,7 @@
             });
             gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
             gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+            gl.uniform4f(shaderProgram.uScr, 400 / 600, 0, 0, 0);
             gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
         //}
     }
