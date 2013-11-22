@@ -21,7 +21,7 @@
 <script id="shader-vs" type="x-shader/x-vertex">
     attribute vec3 vaVertexPosition;
     attribute vec4 vaVertexColor;
-    attribute vec2 vaUV;
+    attribute vec3 vaUV;
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
@@ -31,14 +31,16 @@
     varying vec2 vUV;
 
     void main(void) {
-        vec4 position= uMVMatrix * vec4(vaVertexPosition.xyz,1.0);
+        vec3 pos=vaVertexPosition.xyz;
+        pos.y=pos.y+cos(uScr.y+vaUV.z);
+        vec4 position= uMVMatrix * vec4(pos,1.0);
         position = uPMatrix * position;
         position.x = position.x+vaUV.x;
         position.y = position.y+vaUV.y*uScr.x;
 
         gl_Position = position;
         vColor = vaVertexColor;
-        vUV = vaUV;
+        vUV = vaUV.xy;
     }
 </script>
 
@@ -215,50 +217,39 @@
         squareVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
         var vertices = [];
-        var sq = 100;
+        var sq = 1000;
         for (var i = 0; i < sq; i++) {
-            var v = [
-                [0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0],
-            ];
             var uv = [
-                [1, 1],
-                [-1, 1],
-                [1, -1],
-                [-1, -1]
+                [1, 1, i / 10],
+                [-1, 1, i / 10],
+                [1, -1, i / 10],
+                [-1, -1, i / 10]
             ];
-            var r = BSpline(i / 100, [0, 0, 10, 20, 0, 5, 10, 5, 0]);
-            var center = [i, r, 0];
-            for (var j = 0; j < 4; j++) {
-                v[j][0] += center[0];
-                v[j][1] += center[1];
-                v[j][2] += center[2];
-            }
-            var c = HSVtoRGB(Math.random(), 0.8, 1.0);
+            var r = BSpline(i / sq, [0, 0, 10, 20, 0, 5, 10, 5, 0]);
+            var center = [Math.cos(i / 50) * i * 0.1, 0, Math.sin(i / 50) * i * 0.1];
+            var c = HSVtoRGB(i/sq, 0.8, 1.0);
             c = c.concat(1.0);
-            vertices = vertices.concat(v[0]);
+            vertices = vertices.concat(center);
             vertices = vertices.concat(c);
             vertices = vertices.concat(uv[0]);
 
-            vertices = vertices.concat(v[1]);
+            vertices = vertices.concat(center);
             vertices = vertices.concat(c);
             vertices = vertices.concat(uv[1]);
 
-            vertices = vertices.concat(v[2]);
+            vertices = vertices.concat(center);
             vertices = vertices.concat(c);
             vertices = vertices.concat(uv[2]);
 
-            vertices = vertices.concat(v[2]);
+            vertices = vertices.concat(center);
             vertices = vertices.concat(c);
             vertices = vertices.concat(uv[2]);
 
-            vertices = vertices.concat(v[1]);
+            vertices = vertices.concat(center);
             vertices = vertices.concat(c);
             vertices = vertices.concat(uv[1]);
 
-            vertices = vertices.concat(v[3]);
+            vertices = vertices.concat(center);
             vertices = vertices.concat(c);
             vertices = vertices.concat(uv[3]);
         }
@@ -280,8 +271,8 @@
             mat4.identity(mvMatrix);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
-            mat4.translate(mvMatrix, [0, -10.0, -50]);
-            mat4.rotate(mvMatrix, count / 60 , [0, 1.0, 0]);
+            mat4.translate(mvMatrix, [0, -10.0, -100]);
+            //mat4.rotate(mvMatrix, count / 60 , [0, 1.0, 0]);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
@@ -293,7 +284,7 @@
             });
             gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
             gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-            gl.uniform4f(shaderProgram.uScr, gl.viewportWidth / gl.viewportHeight, Math.cos(count / 100), 0, 0);
+            gl.uniform4f(shaderProgram.uScr, gl.viewportWidth / gl.viewportHeight, count / 30, 0, 0);
             gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
         }
     }
