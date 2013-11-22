@@ -46,6 +46,36 @@
         }
     }
 
+    /**
+    * @param hsv 0~1
+    */
+    function HSVtoRGB(h, s, v) {
+        if (0 == s) {
+            return [v, v, v];
+        }
+        if (1 < s) s = 1;
+        if (h < 0) h++;
+        if (1 < h) h--;
+        var i = Math.floor(h * 6);
+        var f = h * 6 - i;
+        var p = v * (1 - s);
+        var q = v * (1 - f * s);
+        var t = v * (1 - (1 - f) * s);
+        switch (i) {
+            case 0:
+                return [v, t, p];
+            case 1:
+                return [q, v, p];
+            case 2:
+                return [p, v, t];
+            case 3:
+                return [p, q, v];
+            case 4:
+                return [t, p, v];
+            default:
+                return [v, p, q];
+        }
+    }
 
     function getShader(gl, id) {
         var shaderScript = document.getElementById(id);
@@ -156,9 +186,9 @@
                 v[j][0] += (i % 32) * 3;
                 v[j][1] += (i / 32) * 3;
             }
-            var c = [Math.random(), Math.random(), Math.random(), 1.0];
+            var c = HSVtoRGB(Math.random(), 0.8, 1.0);
+            c = c.concat(1.0);
             vertices = vertices.concat(v[0]);
-            var c = [Math.random(), Math.random(), Math.random(), 1.0];
             vertices = vertices.concat(c);
             vertices = vertices.concat(v[1]);
             vertices = vertices.concat(c);
@@ -190,7 +220,7 @@
         //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
         mat4.translate(mvMatrix, [-10, -10.0, -50]);
-        mat4.rotate(mvMatrix, count / 60 * 3.14 * 2, [0.5, 1.0, 0.2]);
+        mat4.rotate(mvMatrix, count / 60 , [0.5, 1.0, 0.2]);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
