@@ -9,20 +9,24 @@
 
 <script id="shader-fs" type="x-shader/x-fragment">
     precision mediump float;
-
+    varying vec4 vColor;
     void main(void) {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_FragColor = vColor;
     }
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
     attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
 
+    varying vec4 vColor;
+
     void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        gl_Position = uPMatrix*uMVMatrix*vec4(aVertexPosition, 1.0);
+        vColor = aVertexColor;
     }
 </script>
 
@@ -120,16 +124,17 @@
         squareVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
         var vertices = [];
-        for (var i = 0; i < 100; i++) {
+        var sq = 4000;
+        for (var i = 0; i < sq; i++) {
             var v = [
-                 [1.0, 1.0, 0.0],
-                [-1.0, 1.0, 0.0],
-                [1.0, -1.0, 0.0],
-                [-1.0, -1.0, 0.0],
+                 [0.5, 0.5 , 0.0],
+                [-0.5, 0.5 , 0.0],
+                [0.5, -0.5 , 0.0],
+                [-0.5, -0.5 , 0.0],
             ];
             for (var j = 0; j < 4; j++) {
-                v[j][0] += (i % 10) * 3;
-                v[j][1] += (i / 10) * 3;
+                v[j][0] += (i % 32) * 3;
+                v[j][1] += (i / 32) * 3;
             }
             vertices = vertices.concat(v[0]);
             vertices = vertices.concat(v[1]);
@@ -140,7 +145,8 @@
         }
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         squareVertexPositionBuffer.itemSize = 3;
-        squareVertexPositionBuffer.numItems = 600;
+        squareVertexPositionBuffer.numItems = sq * 6;
+
     }
 
     var count = 0;
@@ -150,17 +156,20 @@
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 1, 1000.0, pMatrix);
 
         //for (var i = 0; i < 10; i++) {
-            mat4.identity(mvMatrix);
+        mat4.identity(mvMatrix);
+        //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
-            mat4.translate(mvMatrix, [-10, -10.0, -50.0]);
-            mat4.rotate(mvMatrix, count / 60 * 3.14 * 2, [0.5, 1.0, 0.2]);
+        mat4.translate(mvMatrix, [-10, -10.0, -50]);
+        mat4.rotate(mvMatrix, count / 60 * 3.14 * 2, [0.5, 1.0, 0.2]);
+            //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
             gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            setMatrixUniforms();
+            gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+            gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
             gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
         //}
     }
