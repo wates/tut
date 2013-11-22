@@ -247,12 +247,12 @@
 
         mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 1, 1000.0, pMatrix);
 
-        //for (var i = 0; i < 10; i++) {
-        mat4.identity(mvMatrix);
-        //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
+        for (var i = 0; i < 1; i++) {
+            mat4.identity(mvMatrix);
+            //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
-        mat4.translate(mvMatrix, [-10, -10.0, -50]);
-        mat4.rotate(mvMatrix, count / 60 , [0.5, 1.0, 0.2]);
+            mat4.translate(mvMatrix, [-10, -10.0, -50]);
+            mat4.rotate(mvMatrix, count / 60 , [0.5, 1.0, 0.2]);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
@@ -266,7 +266,7 @@
             gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
             gl.uniform4f(shaderProgram.uScr, gl.viewportWidth / gl.viewportHeight, 0, 0, 0);
             gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
-        //}
+        }
     }
 
     function webGLStart() {
@@ -283,7 +283,11 @@
     }
 
     setInterval(drawScene, 16);
-
+    var alpha = false;
+    function toggleAlpha() {
+        alpha ? gl.enable(gl.BLEND) : gl.disable(gl.BLEND);
+        alpha = !alpha;
+    }
 
 </script>
 
@@ -292,12 +296,8 @@
 
 
 <body onload="webGLStart();">
-    <a href="http://learningwebgl.com/blog/?p=28">&lt;&lt; Back to Lesson 1</a><br />
-
     <canvas id="lesson01-canvas" style="border: none;" width="600" height="400"></canvas>
-
-    <br/>
-    <a href="http://learningwebgl.com/blog/?p=28">&lt;&lt; Back to Lesson 1</a><br />
+    <input id="toggle" type="button" value="toggle" onclick="toggleAlpha();" />
 </body>
 
 </html>
