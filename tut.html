@@ -31,7 +31,7 @@
     varying vec2 vUV;
 
     void main(void) {
-        vec4 position= uMVMatrix * vec4(vaVertexPosition.xyz,1.0);
+        vec4 position= uMVMatrix * vec4(vaVertexPosition.xyz*uScr.y,1.0);
         position = uPMatrix * position;
         position.x = position.x+vaUV.x;
         position.y = position.y+vaUV.y*uScr.x;
@@ -264,7 +264,7 @@
             });
             gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
             gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-            gl.uniform4f(shaderProgram.uScr, gl.viewportWidth / gl.viewportHeight, 0, 0, 0);
+            gl.uniform4f(shaderProgram.uScr, gl.viewportWidth / gl.viewportHeight, Math.cos(count / 100), 0, 0);
             gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
         }
     }
