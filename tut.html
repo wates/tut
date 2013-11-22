@@ -119,26 +119,28 @@
     function initBuffers() {
         squareVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-        vertices = [
-             1.0, 1.0, 0.0,
-            -1.0, 1.0, 0.0,
-             1.0, -1.0, 0.0,
-
-             1.0, -1.0, 0.0,
-            -1.0, 1.0, 0.0,
-            -1.0, -1.0, 0.0,
-
-             1.0, 1.0-3, 0.0,
-            -1.0, 1.0-3, 0.0,
-             1.0, -1.0-3, 0.0,
-
-             1.0, -1.0-3, 0.0,
-            -1.0, 1.0-3, 0.0,
-            -1.0, -1.0-3, 0.0,
-        ];
+        var vertices = [];
+        for (var i = 0; i < 100; i++) {
+            var v = [
+                 [1.0, 1.0, 0.0],
+                [-1.0, 1.0, 0.0],
+                [1.0, -1.0, 0.0],
+                [-1.0, -1.0, 0.0],
+            ];
+            for (var j = 0; j < 4; j++) {
+                v[j][0] += (i % 10) * 3;
+                v[j][1] += (i / 10) * 3;
+            }
+            vertices = vertices.concat(v[0]);
+            vertices = vertices.concat(v[1]);
+            vertices = vertices.concat(v[2]);
+            vertices = vertices.concat(v[2]);
+            vertices = vertices.concat(v[1]);
+            vertices = vertices.concat(v[3]);
+        }
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         squareVertexPositionBuffer.itemSize = 3;
-        squareVertexPositionBuffer.numItems = 12;
+        squareVertexPositionBuffer.numItems = 600;
     }
 
     var count = 0;
@@ -153,7 +155,7 @@
         //for (var i = 0; i < 10; i++) {
             mat4.identity(mvMatrix);
 
-            mat4.translate(mvMatrix, [0, 0.0, -10.0]);
+            mat4.translate(mvMatrix, [-10, -10.0, -50.0]);
             mat4.rotate(mvMatrix, count / 60 * 3.14 * 2, [0.5, 1.0, 0.2]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
