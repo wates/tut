@@ -123,13 +123,22 @@
              1.0, 1.0, 0.0,
             -1.0, 1.0, 0.0,
              1.0, -1.0, 0.0,
+
+             1.0, -1.0, 0.0,
+            -1.0, 1.0, 0.0,
             -1.0, -1.0, 0.0,
-             0.0, -2.0, 0.0,
-            -1.0, -3.0, 0.0
+
+             1.0, 1.0-3, 0.0,
+            -1.0, 1.0-3, 0.0,
+             1.0, -1.0-3, 0.0,
+
+             1.0, -1.0-3, 0.0,
+            -1.0, 1.0-3, 0.0,
+            -1.0, -1.0-3, 0.0,
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         squareVertexPositionBuffer.itemSize = 3;
-        squareVertexPositionBuffer.numItems = 6;
+        squareVertexPositionBuffer.numItems = 12;
     }
 
     var count = 0;
