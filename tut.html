@@ -10,23 +10,29 @@
 <script id="shader-fs" type="x-shader/x-fragment">
     precision mediump float;
     varying vec4 vColor;
+    varying vec2 vUV;
     void main(void) {
-        gl_FragColor = vColor;
+        float r=min(1.0,dot(vUV.xy,vUV.xy));
+        r=1.0-r*r;
+        gl_FragColor = vec4(r*vColor.xyz,1.0);
     }
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
     attribute vec3 vaVertexPosition;
     attribute vec4 vaVertexColor;
+    attribute vec2 vaUV;
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
 
     varying vec4 vColor;
+    varying vec2 vUV;
 
     void main(void) {
         gl_Position = uPMatrix*uMVMatrix*vec4(vaVertexPosition, 1.0);
         vColor = vaVertexColor;
+        vUV = vaUV;
     }
 </script>
 
@@ -177,10 +183,16 @@
         var sq = 400;
         for (var i = 0; i < sq; i++) {
             var v = [
-                 [0.5, 0.5 , 0.0],
-                [-0.5, 0.5 , 0.0],
-                [0.5, -0.5 , 0.0],
-                [-0.5, -0.5 , 0.0],
+                 [1, 1 , 0.0],
+                [-1, 1 , 0.0],
+                [1, -1 , 0.0],
+                [-1, -1 , 0.0],
+            ];
+            var uv = [
+                [1, 1],
+                [-1, 1],
+                [1, -1],
+                [-1, -1]
             ];
             for (var j = 0; j < 4; j++) {
                 v[j][0] += (i % 32) * 3;
@@ -190,16 +202,27 @@
             c = c.concat(1.0);
             vertices = vertices.concat(v[0]);
             vertices = vertices.concat(c);
+            vertices = vertices.concat(uv[0]);
+
             vertices = vertices.concat(v[1]);
             vertices = vertices.concat(c);
+            vertices = vertices.concat(uv[1]);
+
             vertices = vertices.concat(v[2]);
             vertices = vertices.concat(c);
+            vertices = vertices.concat(uv[2]);
+
             vertices = vertices.concat(v[2]);
             vertices = vertices.concat(c);
+            vertices = vertices.concat(uv[2]);
+
             vertices = vertices.concat(v[1]);
             vertices = vertices.concat(c);
+            vertices = vertices.concat(uv[1]);
+
             vertices = vertices.concat(v[3]);
             vertices = vertices.concat(c);
+            vertices = vertices.concat(uv[3]);
         }
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         squareVertexPositionBuffer.numItems = sq * 6;
