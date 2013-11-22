@@ -32,11 +32,11 @@
 
     void main(void) {
         vec3 pos=vaVertexPosition.xyz;
-        pos.y=pos.y+cos(uScr.y+vaUV.z);
+        //pos.y=pos.y+cos(uScr.y+vaUV.z);
         vec4 position= uMVMatrix * vec4(pos,1.0);
         position = uPMatrix * position;
-        position.x = position.x+vaUV.x;
-        position.y = position.y+vaUV.y*uScr.x;
+        position.x = position.x+vaUV.x*cos(uScr.y+vaUV.z);
+        position.y = position.y+vaUV.y*uScr.x*cos(uScr.y+vaUV.z);
 
         gl_Position = position;
         vColor = vaVertexColor;
@@ -220,10 +220,9 @@
         var sq = 1000;
         for (var i = 0; i < sq; i++) {
             var uv = [
-                [1, 1, i / 10],
-                [-1, 1, i / 10],
-                [1, -1, i / 10],
-                [-1, -1, i / 10]
+                [0, 1.6, i / -10],
+                [-1.5, -1, i / -10],
+                [1.5, -1, i / -10]
             ];
             var r = BSpline(i / sq, [0, 0, 10, 20, 0, 5, 10, 5, 0]);
             var center = [Math.cos(i / 50) * i * 0.1, 0, Math.sin(i / 50) * i * 0.1];
@@ -240,21 +239,9 @@
             vertices = vertices.concat(center);
             vertices = vertices.concat(c);
             vertices = vertices.concat(uv[2]);
-
-            vertices = vertices.concat(center);
-            vertices = vertices.concat(c);
-            vertices = vertices.concat(uv[2]);
-
-            vertices = vertices.concat(center);
-            vertices = vertices.concat(c);
-            vertices = vertices.concat(uv[1]);
-
-            vertices = vertices.concat(center);
-            vertices = vertices.concat(c);
-            vertices = vertices.concat(uv[3]);
         }
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        squareVertexPositionBuffer.numItems = sq * 6;
+        squareVertexPositionBuffer.numItems = sq * 3;
 
     }
 
