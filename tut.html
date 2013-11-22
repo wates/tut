@@ -14,7 +14,7 @@
     void main(void) {
         float r=min(1.0,dot(vUV.xy,vUV.xy));
         r=1.0-r*r;
-        gl_FragColor = vec4(r*vColor.xyz,1.0);
+        gl_FragColor = vec4(vColor.xyz,r);
     }
 </script>
 
@@ -33,8 +33,8 @@
     void main(void) {
         vec4 position= uMVMatrix * vec4(vaVertexPosition.xyz,1.0);
         position = uPMatrix * position;
-        position.x = position.x+vaUV.x*uScr.x;
-        position.y = position.y+vaUV.y;
+        position.x = position.x+vaUV.x;
+        position.y = position.y+vaUV.y*uScr.x;
 
         gl_Position = position;
         vColor = vaVertexColor;
@@ -187,7 +187,7 @@
         squareVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
         var vertices = [];
-        var sq = 400;
+        var sq = 1000;
         for (var i = 0; i < sq; i++) {
             var v = [
                 [0.0, 0.0, 0.0],
@@ -201,9 +201,11 @@
                 [1, -1],
                 [-1, -1]
             ];
+            var center = [Math.random() * 20, Math.random() * 20, Math.random() * 20];
             for (var j = 0; j < 4; j++) {
-                v[j][0] += (i % 32) * 3;
-                v[j][1] += (i / 32) * 3;
+                v[j][0] += center[0];
+                v[j][1] += center[1];
+                v[j][2] += center[2];
             }
             var c = HSVtoRGB(Math.random(), 0.8, 1.0);
             c = c.concat(1.0);
@@ -262,7 +264,7 @@
             });
             gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
             gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-            gl.uniform4f(shaderProgram.uScr, 400 / 600, 0, 0, 0);
+            gl.uniform4f(shaderProgram.uScr, gl.viewportWidth / gl.viewportHeight, 0, 0, 0);
             gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
         //}
     }
@@ -274,7 +276,9 @@
         initBuffers();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
     }
 
