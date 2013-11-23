@@ -35,8 +35,8 @@
         //pos.y=pos.y+cos(uScr.y+vaUV.z);
         vec4 position= uMVMatrix * vec4(pos,1.0);
         position = uPMatrix * position;
-        position.x = position.x+vaUV.x*cos(uScr.y+vaUV.z);
-        position.y = position.y+vaUV.y*uScr.x*cos(uScr.y+vaUV.z);
+        position.x = position.x+vaUV.x*vaUV.z;
+        position.y = position.y+vaUV.y*vaUV.z*uScr.x;
 
         gl_Position = position;
         vColor = vaVertexColor;
@@ -217,32 +217,67 @@
         squareVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
         var vertices = [];
-        var sq = 1000;
-        for (var i = 0; i < sq; i++) {
-            var uv = [
-                [0, 1.6, i / -10],
-                [-1.5, -1, i / -10],
-                [1.5, -1, i / -10]
-            ];
-            var r = BSpline(i / sq, [0, 0, 10, 20, 0, 5, 10, 5, 0]);
-            var center = [Math.cos(i / 50) * i * 0.1, 0, Math.sin(i / 50) * i * 0.1];
-            var c = HSVtoRGB(i/sq, 0.8, 1.0);
-            c = c.concat(1.0);
-            vertices = vertices.concat(center);
-            vertices = vertices.concat(c);
-            vertices = vertices.concat(uv[0]);
+        var branch = function (root,age) {
+            if (age >= 7)
+                return;
+            var pose = mat4.create();
+            mat4.set(root.pose, pose);
 
-            vertices = vertices.concat(center);
-            vertices = vertices.concat(c);
-            vertices = vertices.concat(uv[1]);
+            var sq = 60 - age * 10;
+            for (var i = 0; i < sq; i++) {
+                var ca = 0;
+                var vz = 2.0 - age * 0.2;
+                var uv = [
+                    [0, 1.7, vz],
+                    [-1.6, -1, vz],
+                    [1.6, -1, vz]
+                ];
+                var center = [0, i*1.5, 0];
+                mat4.multiplyVec3(pose, center);
+                var c = HSVtoRGB(age * 0.2 + i / sq / 3, 0.8, 1.0);
+                c = c.concat(ca);
 
-            vertices = vertices.concat(center);
-            vertices = vertices.concat(c);
-            vertices = vertices.concat(uv[2]);
+                var vert = [];
+                vert = vert.concat(center);
+                vert = vert.concat(c);
+                vert = vert.concat(uv[0]);
+
+                vert = vert.concat(center);
+                vert = vert.concat(c);
+                vert = vert.concat(uv[1]);
+
+                vert = vert.concat(center);
+                vert = vert.concat(c);
+                vert = vert.concat(uv[2]);
+
+                vertices = vertices.concat(vert);
+            }
+            var branches = 4;
+            for (var i = 1; i < branches; i++) {
+                var br = mat4.create();
+                var p = [0, i * 8, 0];
+                mat4.identity(br);
+                mat4.translate(br, p);
+                mat4.rotate(br, i * 4, [0, 1, 0]);
+                mat4.rotate(br, 0.8, [1, 3, 2]);
+                var scale = 0.03;
+                mat4.scale(br, [1.0 - i * scale, 1.0 - i * scale, 1.0 - i * scale]);
+                mat4.multiply(br, pose, br);
+
+                branch({
+                    pose:br
+                }, age + 1);
+            }
         }
+        var pose = mat4.create();
+        mat4.identity(pose);
+        branch({
+            pose:pose
+        }, 1);
+        var stride = 0;
+        shaderProgram.vertexAttribute.forEach(function (a) { stride += a.len; });
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        squareVertexPositionBuffer.numItems = sq * 3;
-
+        squareVertexPositionBuffer.numItems = vertices.length / stride;
     }
 
     var count = 0;
@@ -258,8 +293,8 @@
             mat4.identity(mvMatrix);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
-            mat4.translate(mvMatrix, [0, -10.0, -100]);
-            //mat4.rotate(mvMatrix, count / 60 , [0, 1.0, 0]);
+            mat4.translate(mvMatrix, [0, -40.0, -100]);
+            mat4.rotate(mvMatrix, count / 60 , [0, 1.0, 0]);
             //mat4.scale(mvMatrix, [0.2, 0.2, 0.2]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
@@ -303,8 +338,11 @@
 
 
 <body onload="webGLStart();">
-    <canvas id="lesson01-canvas" style="border: none;" width="600" height="400"></canvas>
-    <input id="toggle" type="button" value="toggle" onclick="toggleAlpha();" />
+    <table><tr>
+    <td><canvas id="lesson01-canvas" style="border: none;" width="600" height="400"></canvas></td>
+    <td><input id="toggle" type="button" value="toggle" onclick="toggleAlpha();" /></td>
+    <td><ul id="parameters"></ul></td>
+    </tr></table>
 </body>
 
 </html>
