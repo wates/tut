@@ -2,9 +2,10 @@
 
 <head>
   <title>Learning WebGL &mdash; lesson 1</title>
-  <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+  <meta http-equiv="content-type" content="text/html; charset=utf8">
 
   <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+  <script type="text/javascript" src="jq.js"></script>
 
   <script id="shader-fs" type="x-shader/x-fragment">
     precision mediump float;
@@ -209,17 +210,42 @@
 
     var squareVertexPositionBuffer = null;
 
+    var params = {
+      max_age: { name: "最大世代数", init: 7 },
+      length: { name: "枝の初期長さ", init: 40 },
+      reduce_length: { name: "枝が短くなる量", init: 5 },
+      branch_interval: { name: "枝の高さ間隔", init: 5 },
+      branch_angle: { name: "枝の傾き", init: 0.8 },
+      branch_axis: { name: "枝のひねり", init: 4 },
+      branch: { name: "枝の数", init: 3 },
+      branch_scale: { name: "枝の大きさ", init: 0.97 },
+      age_hue: { name: "世代ごとの色相", init: 0.1 },
+    };
+    function initParams() {
+      for (var i in params) {
+        $('#parameters').append($('<li>').html(params[i].name + '<input id="params_' + i + '" type="text" value="' + JSON.stringify(params[i].init) + '" />'));
+      }
+    };
+    function getParams() {
+      var ret = {};
+      for (var i in params) {
+        ret[i] = JSON.parse($('#params_' + i)[0].value);
+      }
+      return ret;
+    }
+
     function initBuffers() {
       squareVertexPositionBuffer = squareVertexPositionBuffer || gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
       var vertices = [];
+      var P = getParams();
       var branch = function (root, age) {
-        if (age >= 7)
+        if (age >= P.max_age + 1)
           return;
         var pose = mat4.create();
         mat4.set(root.pose, pose);
 
-        var sq = 60 - age * 10;
+        var sq = P.length - age * P.reduce_length;
         for (var i = 0; i < sq; i++) {
           var ca = 0;
           var vz = 2.0 - age * 0.2;
@@ -230,7 +256,7 @@
           ];
           var center = [0, i * 1.5, 0];
           mat4.multiplyVec3(pose, center);
-          var c = HSVtoRGB(age * 0.2 + i / sq / 3, 0.6, 1.0);
+          var c = HSVtoRGB(age * P.age_hue + i / sq / P.max_age*2, 0.6, 1.0);
           c = c.concat(ca);
 
           var vert = [];
@@ -248,15 +274,15 @@
 
           vertices = vertices.concat(vert);
         }
-        var branches = 4;
+        var branches = P.branch + 1;
         for (var i = 1; i < branches; i++) {
           var br = mat4.create();
-          var p = [0, i * 8, 0];
+          var p = [0, i * P.branch_interval, 0];
           mat4.identity(br);
           mat4.translate(br, p);
-          mat4.rotate(br, i * 4, [0, 1, 0]);
-          mat4.rotate(br, 0.8, [1, 3, 2]);
-          var scale = 0.03;
+          mat4.rotate(br, i * P.branch_axis, [0, 1, 0]);
+          mat4.rotate(br, P.branch_angle, [1, 3, 2]);
+          var scale = 1-P.branch_scale;
           mat4.scale(br, [1.0 - i * scale, 1.0 - i * scale, 1.0 - i * scale]);
           mat4.multiply(br, pose, br);
 
@@ -273,6 +299,7 @@
       var stride = shaderProgram.vertexAttribute.reduce(function (b, a) { return b + a.len; }, 0);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
       squareVertexPositionBuffer.numItems = vertices.length / stride;
+      $('#info').text(squareVertexPositionBuffer.numItems/3);
     }
 
     var count = 0;
@@ -310,6 +337,7 @@
     }
 
     function webGLStart() {
+      initParams();
       var canvas = document.getElementById("lesson01-canvas");
       initGL(canvas);
       initShaders();
@@ -339,7 +367,10 @@
         <canvas id="lesson01-canvas" style="border: none;" width="600" height="400"></canvas>
       </td>
       <td>
-        <input id="toggle" type="button" value="toggle" onclick="toggleAlpha();" /></td>
+        <p id="info"></p>
+        <input id="update" type="button" value="update" onclick="initBuffers();" /><br />
+        <input id="toggle" type="button" value="toggle" onclick="toggleAlpha();" /><br />
+      </td>
       <td>
         <ul id="parameters"></ul>
       </td>
