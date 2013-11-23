@@ -1,8 +1,8 @@
-<html>
+﻿<html>
 
 <head>
   <title>Learning WebGL &mdash; lesson 1</title>
-  <meta http-equiv="content-type" content="text/html; charset=utf8">
+  <!--<meta http-equiv="content-type" content="text/html; charset=utf8">-->
 
   <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
   <script type="text/javascript" src="jq.js"></script>
@@ -13,7 +13,7 @@
     varying vec2 vUV;
     void main(void) {
         float r=min(1.0,dot(vUV.xy,vUV.xy));
-        r=1.0-r*r;
+        r=1.0-r;
         gl_FragColor = vec4(vColor.xyz,r);
     }
   </script>
@@ -272,7 +272,9 @@
           vert = vert.concat(c);
           vert = vert.concat(uv[2]);
 
-          vertices = vertices.concat(vert);
+          var l=vert.length;
+          for (var k = 0; k < l;k++){ vertices.push(vert[k]); }
+          //vertices = vertices.concat(vert);
         }
         var branches = P.branch + 1;
         for (var i = 1; i < branches; i++) {
@@ -364,7 +366,7 @@
   <table>
     <tr>
       <td>
-        <canvas id="lesson01-canvas" style="border: none;" width="600" height="400"></canvas>
+        <canvas id="lesson01-canvas" style="border: none;" width="800" height="480"></canvas>
       </td>
       <td>
         <p id="info"></p>
